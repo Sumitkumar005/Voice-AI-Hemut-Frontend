@@ -61,11 +61,14 @@ function CallLogs({ logs }) {
               </div>
 
               <div style={styles.colReason}>
-                {log.is_loaded ? (
-                  <span style={styles.successText}>En route to destination</span>
+                {/* FIXED: Show actual reason/notes for both loaded and empty */}
+                {log.reason_not_loaded ? (
+                  <span style={log.is_loaded ? styles.successText : styles.reasonText}>
+                    {log.reason_not_loaded}
+                  </span>
                 ) : (
-                  <span style={styles.reasonText}>
-                    {log.reason_not_loaded || 'No reason provided'}
+                  <span style={styles.noReasonText}>
+                    {log.is_loaded ? 'Pickup confirmed' : 'No reason provided'}
                   </span>
                 )}
               </div>
@@ -205,11 +208,16 @@ const styles = {
   successText: {
     fontSize: '14px',
     color: '#059669',
-    fontStyle: 'italic',
+    fontWeight: '500',
   },
   reasonText: {
     fontSize: '14px',
-    color: '#6b7280',
+    color: '#dc2626',
+    fontWeight: '500',
+  },
+  noReasonText: {
+    fontSize: '14px',
+    color: '#9ca3af',
     fontStyle: 'italic',
   },
   timeText: {
