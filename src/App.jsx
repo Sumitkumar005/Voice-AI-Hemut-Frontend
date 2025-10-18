@@ -3,7 +3,7 @@ import Dashboard from './components/Dashboard';
 import DriverList from './components/DriverList';
 import CallLogs from './components/CallLogs';
 
-const API_URL = 'http://localhost:8000';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 function App() {
   const [drivers, setDrivers] = useState([]);
