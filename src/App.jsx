@@ -111,6 +111,33 @@ function App() {
     }
   };
 
+  const assignLoad = async (driverId, loadId) => {
+    try {
+      const response = await fetch(`${API_URL}/api/assign-load`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ driver_id: driverId, load_id: loadId }),
+      });
+
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        alert(`🚛 ${data.message}\n📞 AI is calling the driver with load details...`);
+        
+        // Refresh data after call
+        setTimeout(fetchData, 3000);
+      } else {
+        const errorMsg = data.detail || data.message || 'Failed to assign load';
+        alert(`❌ ${errorMsg}`);
+      }
+    } catch (error) {
+      console.error('Error assigning load:', error);
+      alert('❌ Network error - check if backend is running');
+    }
+  };
+
   useEffect(() => {
     if (isAuthenticated) {
       fetchData();
@@ -215,7 +242,7 @@ function App() {
 
       <main style={styles.main}>
         {activeTab === 'dashboard' && <Dashboard drivers={drivers} loads={loads} callLogs={callLogs} />}
-        {activeTab === 'drivers' && <DriverList drivers={drivers} onMakeCall={makeCall} />}
+        {activeTab === 'drivers' && <DriverList drivers={drivers} loads={loads} onMakeCall={makeCall} onAssignLoad={assignLoad} />}
         {activeTab === 'logs' && <CallLogs logs={callLogs} />}
       </main>
     </div>

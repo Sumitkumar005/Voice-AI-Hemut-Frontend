@@ -1,13 +1,34 @@
 import React, { useState } from 'react';
 
-function DriverList({ drivers, onMakeCall }) {
+function DriverList({ drivers, loads, onMakeCall, onAssignLoad }) {
   const [calling, setCalling] = useState(null);
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [selectedDriver, setSelectedDriver] = useState(null);
+  const [selectedLoad, setSelectedLoad] = useState('');
 
   const handleCall = async (driverId) => {
     setCalling(driverId);
     await onMakeCall(driverId);
     setTimeout(() => setCalling(null), 3000);
   };
+
+  const handleAssignLoad = (driver) => {
+    setSelectedDriver(driver);
+    setShowAssignModal(true);
+  };
+
+  const confirmAssignment = async () => {
+    if (selectedDriver && selectedLoad) {
+      setCalling(selectedDriver.id);
+      await onAssignLoad(selectedDriver.id, selectedLoad);
+      setShowAssignModal(false);
+      setSelectedDriver(null);
+      setSelectedLoad('');
+      setTimeout(() => setCalling(null), 3000);
+    }
+  };
+
+  const availableLoads = loads?.filter(load => load.status === 'available') || [];
 
   return (
     <div style={styles.container}>
@@ -46,16 +67,78 @@ function DriverList({ drivers, onMakeCall }) {
               </div>
 
               <div style={styles.cardFooter}>
-                <button
-                  onClick={() => handleCall(driver.id)}
-                  disabled={calling === driver.id}
-                  style={calling === driver.id ? {...styles.callBtn, ...styles.callBtnDisabled} : styles.callBtn}
-                >
-                  {calling === driver.id ? '📞 Calling...' : '📞 Call Driver'}
-                </button>
+                <div style={styles.buttonGroup}>
+                  <button
+                    onClick={() => handleCall(driver.id)}
+                    disabled={calling === driver.id}
+                    style={calling === driver.id ? {...styles.callBtn, ...styles.callBtnDisabled} : styles.callBtn}
+                  >
+                    {calling === driver.id ? '📞 Calling...' : '📞 Call Driver'}
+                  </button>
+                  
+                  <button
+                    onClick={() => handleAssignLoad(driver)}
+                    disabled={calling === driver.id || availableLoads.length === 0}
+                    style={availableLoads.length === 0 ? {...styles.assignBtn, ...styles.assignBtnDisabled} : styles.assignBtn}
+                  >
+                    🚛 Assign Load
+                  </button>
+                </div>
               </div>
             </div>
           ))}
+        </div>
+      )}
+      
+      {/* Load Assignment Modal */}
+      {showAssignModal && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.modal}>
+            <div style={styles.modalHeader}>
+              <h3>🚛 Assign Load to {selectedDriver?.name}</h3>
+              <button 
+                onClick={() => setShowAssignModal(false)}
+                style={styles.closeBtn}
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div style={styles.modalContent}>
+              <p style={styles.modalText}>
+                Select a load to assign to <strong>{selectedDriver?.name}</strong>:
+              </p>
+              
+              <select 
+                value={selectedLoad} 
+                onChange={(e) => setSelectedLoad(e.target.value)}
+                style={styles.loadSelect}
+              >
+                <option value="">Select a load...</option>
+                {availableLoads.map(load => (
+                  <option key={load.id} value={load.id}>
+                    {load.load_number} - {load.pickup_location} → {load.delivery_location} ({load.weight} lbs)
+                  </option>
+                ))}
+              </select>
+              
+              <div style={styles.modalButtons}>
+                <button 
+                  onClick={() => setShowAssignModal(false)}
+                  style={styles.cancelBtn}
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={confirmAssignment}
+                  disabled={!selectedLoad}
+                  style={selectedLoad ? styles.confirmBtn : {...styles.confirmBtn, ...styles.confirmBtnDisabled}}
+                >
+                  📞 Assign & Call Driver
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
@@ -180,6 +263,116 @@ const styles = {
     cursor: 'not-allowed',
     background: '#9ca3af',
     boxShadow: 'none',
+  },
+  buttonGroup: {
+    display: 'flex',
+    gap: '8px',
+    flexWrap: 'wrap',
+  },
+  assignBtn: {
+    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+    color: 'white',
+    border: 'none',
+    padding: '8px 16px',
+    borderRadius: '6px',
+    fontSize: '14px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    transition: 'all 0.3s',
+    flex: 1,
+    minWidth: '120px',
+  },
+  assignBtnDisabled: {
+    opacity: 0.6,
+    cursor: 'not-allowed',
+  },
+  modalOverlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1000,
+  },
+  modal: {
+    backgroundColor: 'white',
+    borderRadius: '12px',
+    padding: '0',
+    maxWidth: '500px',
+    width: '90%',
+    maxHeight: '80vh',
+    overflow: 'hidden',
+    boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
+  },
+  modalHeader: {
+    padding: '20px 24px',
+    borderBottom: '1px solid #e5e7eb',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    color: 'white',
+  },
+  closeBtn: {
+    background: 'none',
+    border: 'none',
+    color: 'white',
+    fontSize: '20px',
+    cursor: 'pointer',
+    padding: '4px',
+  },
+  modalContent: {
+    padding: '24px',
+  },
+  modalText: {
+    marginBottom: '16px',
+    color: '#374151',
+    fontSize: '16px',
+  },
+  loadSelect: {
+    width: '100%',
+    padding: '12px',
+    border: '2px solid #e5e7eb',
+    borderRadius: '8px',
+    fontSize: '14px',
+    marginBottom: '24px',
+    outline: 'none',
+    transition: 'border-color 0.3s',
+  },
+  modalButtons: {
+    display: 'flex',
+    gap: '12px',
+    justifyContent: 'flex-end',
+  },
+  cancelBtn: {
+    background: '#f3f4f6',
+    color: '#374151',
+    border: 'none',
+    padding: '10px 20px',
+    borderRadius: '6px',
+    fontSize: '14px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    transition: 'all 0.3s',
+  },
+  confirmBtn: {
+    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+    color: 'white',
+    border: 'none',
+    padding: '10px 20px',
+    borderRadius: '6px',
+    fontSize: '14px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    transition: 'all 0.3s',
+  },
+  confirmBtnDisabled: {
+    opacity: 0.6,
+    cursor: 'not-allowed',
   },
 };
 
