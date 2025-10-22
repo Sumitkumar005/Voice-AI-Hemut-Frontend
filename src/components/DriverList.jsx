@@ -13,9 +13,6 @@ function DriverList({ drivers, loads, onMakeCall, onAssignLoad }) {
   };
 
   const handleAssignLoad = (driver) => {
-    console.log('🚛 Assign Load clicked for driver:', driver);
-    console.log('📦 Available loads:', availableLoads);
-    console.log('📊 Total loads:', loads);
     setSelectedDriver(driver);
     setShowAssignModal(true);
   };
@@ -32,14 +29,6 @@ function DriverList({ drivers, loads, onMakeCall, onAssignLoad }) {
   };
 
   const availableLoads = loads?.filter(load => load.status === 'available') || [];
-  
-  // Debug logging
-  console.log('🔍 DriverList Debug:', {
-    totalLoads: loads?.length || 0,
-    availableLoads: availableLoads.length,
-    loads: loads,
-    availableLoadsData: availableLoads
-  });
 
   return (
     <div style={styles.container}>
@@ -91,9 +80,8 @@ function DriverList({ drivers, loads, onMakeCall, onAssignLoad }) {
                     onClick={() => handleAssignLoad(driver)}
                     disabled={calling === driver.id || availableLoads.length === 0}
                     style={availableLoads.length === 0 ? {...styles.assignBtn, ...styles.assignBtnDisabled} : styles.assignBtn}
-                    title={availableLoads.length === 0 ? 'No available loads to assign' : 'Assign a load to this driver'}
                   >
-                    🚛 Assign Load {availableLoads.length === 0 ? '(No loads)' : ''}
+                    🚛 Assign Load
                   </button>
                 </div>
               </div>
