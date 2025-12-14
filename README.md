@@ -11,7 +11,7 @@ Modern React dashboard for managing AI-powered driver calls and load assignments
 - **React 18** - Modern React with hooks
 - **Vite** - Fast build tool and dev server
 - **Vanilla CSS** - Custom styling with modern CSS features
-- **Vercel** - Serverless deployment platform.
+- **Vercel** - Serverless deployment platform./
 
 ## 📋 Features
 
